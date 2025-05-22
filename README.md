@@ -64,5 +64,14 @@ If using nano, press CTRL + X, then Y, and Enter.
 chmod 600 ~/.my.cnf
 ```
 
-## Customize Your Setup
+**Customize Your Setup**  
+```sh
 Modify the `mysqlbackup-plus.sh` file to configure settings based on your needs.
+```
+
+**Run Script Manually**  
+To manually execute the MySQL backup script, you can do one of the following:
+```sh
+./mysqlbackup-plus.sh
+sh /path/to/mysqlbackup-plus.sh
+```
