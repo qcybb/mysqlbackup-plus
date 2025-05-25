@@ -2,7 +2,7 @@
 
 ## MySQLBackupPlus - A powerful and flexible MySQL backup tool
 ## Copyright (C) 2025 Qcybb.com
-## GitHub: https://github.com/qcybb/mysqlbackup-plus/
+## GitHub Repo: https://github.com/qcybb/mysqlbackup-plus
 ## Version: 1.0.0
 ## Last Updated: 2025-05-21
 
@@ -16,7 +16,7 @@ BACKUP_DIR="$HOME/mysql_backups"
 BACKUP_DATE=$(date +"%Y-%m-%d")
 
 # Create weekly backups
-BACKUP_WEEKLY="NO"
+BACKUP_WEEKLY="YES"
 
 # Which day to do the weekly backup (0 = Sunday, 7 = Saturday)
 WEEKLY_BACKUP_DAY=0
@@ -37,7 +37,7 @@ ROTATE_WEEKS=4
 ROTATE_MONTHS=6
 
 # Compression method: gzip, bzip2, xz, zstd, lz4 or leave blank for no compression
-COMPRESS_METHOD="gzip"
+COMPRESS_METHOD="bzip2"
 
 # Compression level: leave blank for default
 # or use 1-9 for gzip and bzip2 ; 0-9 for xz ; 1-19 for zstd ; 1-12 for lz4   
@@ -45,7 +45,7 @@ COMPRESS_LEVEL=
 
 # Define databases and/or tables to backup (format: db1 db2:table1 db3:table1,table2)
 # or use ALL for all databases
-DATABASES="anagrams:english"
+DATABASES="ALL"
 
 # Define excluded databases (format: db1 db2 db3)
 # only works if DATABASES="ALL"
