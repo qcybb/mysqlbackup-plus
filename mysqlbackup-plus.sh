@@ -3,8 +3,10 @@
 ## MySQLBackupPlus - A powerful and flexible MySQL backup tool
 ## Copyright (C) 2025 Qcybb.com
 ## GitHub Repo: https://github.com/qcybb/mysqlbackup-plus
-## Version: 1.0.0
+## Version: 1.1.0
 ## Last Updated: 2025-05-21
+
+SCRIPT_VER="1.1.0"
 
 
 # START CONFIGURATION SETTINGS
@@ -62,6 +64,17 @@ ANALYZE_OPTIMIZE_DAY=0
 
 
 ## DO NOT MODIFY ANYTHING BELOW THIS LINE ##
+
+
+# To preserve your settings across updates, store them in a configuration file
+# instead of modifying this script each time a new version is released.
+# Create a file named `.mysqlbackup-plus.conf` in your HOME directory and define your options.
+# Any settings in this file will override the default values listed above.
+
+CONFIG_FILE="$HOME/.mysqlbackup-plus.conf"
+if [ -r "$CONFIG_FILE" ]; then
+    . "$CONFIG_FILE"    # If exists, load user define settings
+fi
 
 # Ensure `.my.cnf` exists before continuing
 if [ ! -f "$HOME/.my.cnf" ]; then
@@ -161,6 +174,8 @@ CURRENT_WEEKDAY=$(date +%w)
 # Get current month day (1-31)
 CURRENT_MONTHDAY=$(date +%d | sed 's/^0//')
 
+printf "\nMySQLBackupPlus v%s\n%s\n\n" "$SCRIPT_VER" "https://github.com/qcybb/mysqlbackup-plus"
+
 # Analyze and Optimze tables
 if [ "$ANALYZE_OPTIMIZE_DB" = "YES" ] && [ "$CURRENT_WEEKDAY" -eq "$ANALYZE_OPTIMIZE_DAY" ]; then
     MYSQL_CMD="$MYSQL --defaults-file=$HOME/.my.cnf -Bs"
@@ -242,10 +257,14 @@ for DB_ENTRY in $DATABASES; do
             [ ! -d "$DAILY_PATH" ] && mkdir -p "$DAILY_PATH"
 
             OUTPUT_FILE="$DAILY_PATH/${TABLE}_$BACKUP_DATE$EXT"
-            $MYSQLDUMP --defaults-file="$HOME/.my.cnf" "$DB_NAME" "$TABLE" | $COMPRESS_CMD > "$OUTPUT_FILE"
 
-            printf "\n    - Table: $TABLE\n"
-            printf "        -> Saved to:  ${BACKUP_DIR}/daily/${DB_NAME}/${TABLE}_${BACKUP_DATE}${EXT}\n"
+	    if mysql --defaults-file="$HOME/.my.cnf" -e "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA='$DB_NAME' AND TABLE_NAME='$TABLE'" | grep -q "$TABLE"; then
+            	$MYSQLDUMP --defaults-file="$HOME/.my.cnf" "$DB_NAME" "$TABLE" | $COMPRESS_CMD > "$OUTPUT_FILE"
+		printf "\n    - Table: $TABLE\n"
+		printf "        -> Saved to:  ${BACKUP_DIR}/daily/${DB_NAME}/${TABLE}_${BACKUP_DATE}${EXT}\n"
+	    else
+		printf "\nError: Table '$TABLE' in database '$DB_NAME' does not exist.\n"
+	    fi
 
             if [ "$BACKUP_WEEKLY" = "YES" ] && [ "$CURRENT_WEEKDAY" -eq "$WEEKLY_BACKUP_DAY" ]; then
                 [ ! -d "$WEEKLY_PATH" ] && mkdir -p "$WEEKLY_PATH"
@@ -268,10 +287,14 @@ for DB_ENTRY in $DATABASES; do
         [ ! -d "$DAILY_PATH" ] && mkdir -p "$DAILY_PATH"
 
         OUTPUT_FILE="$DAILY_PATH/${DB_NAME}_$BACKUP_DATE$EXT"
-        $MYSQLDUMP --defaults-file="$HOME/.my.cnf" "$DB_NAME" | $COMPRESS_CMD > "$OUTPUT_FILE"
 
-        printf "\n    - Full Database\n"
-        printf "        -> Saved to:  ${BACKUP_DIR}/daily/${DB_NAME}/${DB_NAME}_${BACKUP_DATE}${EXT}\n"
+	if mysql --defaults-file="$HOME/.my.cnf" -e "SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='$DB_NAME'" | grep -q "$DB_NAME"; then
+            $MYSQLDUMP --defaults-file="$HOME/.my.cnf" "$DB_NAME" | $COMPRESS_CMD > "$OUTPUT_FILE"
+		printf "\n    - Full Database\n"
+		printf "        -> Saved to:  ${BACKUP_DIR}/daily/${DB_NAME}/${DB_NAME}_${BACKUP_DATE}${EXT}\n"
+	else
+	    printf "\nError: Database '$DB_NAME' does not exist.\n"
+	fi
 
         if [ "$BACKUP_WEEKLY" = "YES" ] && [ "$CURRENT_WEEKDAY" -eq "$WEEKLY_BACKUP_DAY" ]; then
             [ ! -d "$WEEKLY_PATH" ] && mkdir -p "$WEEKLY_PATH"
