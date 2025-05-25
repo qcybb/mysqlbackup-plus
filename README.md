@@ -67,6 +67,11 @@ chmod 600 ~/.my.cnf
 **Customize Your Setup**  
 ```sh
 Modify the `mysqlbackup-plus.sh` file to configure settings based on your needs.
+-or-
+To preserve your settings across updates, store them in a configuration file
+instead of modifying this script each time a new version is released.
+Create a file named `.mysqlbackup-plus.conf` in your HOME directory and define your options.
+Any settings in this file will override the default values listed in the script.
 ```
 
 **Run Script Manually**  
