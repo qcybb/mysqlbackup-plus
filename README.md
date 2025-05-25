@@ -55,7 +55,7 @@ user=mysql_user_name
 password=mysql_password
 ```
 **Save and exit**  
-```sh
+```
 If using nano, press CTRL + X, then Y, and Enter.
 ```
 
