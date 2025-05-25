@@ -2,7 +2,7 @@
 
 ## MySQLBackupPlus - A powerful and flexible MySQL backup tool
 ## Copyright (C) 2025 Qcybb.com
-## GitHub: https://github.com/qcybb/mysqlbackup-plus/
+## GitHub Repo: https://github.com/qcybb/mysqlbackup-plus
 ## Version: 1.0.0
 ## Last Updated: 2025-05-21
 
