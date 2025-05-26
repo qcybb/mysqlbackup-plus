@@ -4,7 +4,7 @@
 ## Copyright (C) 2025 Qcybb.com
 ## GitHub Repo: https://github.com/qcybb/mysqlbackup-plus
 ## Version: 1.2
-## Last Updated: 2025-05-21
+## Last Updated: 2025-05-25
 
 SCRIPT_VER="1.2"
 
