@@ -3,10 +3,10 @@
 ## MySQLBackupPlus - A powerful and flexible MySQL backup tool
 ## Copyright (C) 2025 Qcybb.com
 ## GitHub Repo: https://github.com/qcybb/mysqlbackup-plus
-## Version: 1.1.0
+## Version: 1.1.1
 ## Last Updated: 2025-05-21
 
-SCRIPT_VER="1.1.0"
+SCRIPT_VER="1.1.1"
 
 
 # START CONFIGURATION SETTINGS
@@ -70,10 +70,9 @@ ANALYZE_OPTIMIZE_DAY=0
 # instead of modifying this script each time a new version is released.
 # Create a file named `.mysqlbackup-plus.conf` in your HOME directory and define your options.
 # Any settings in this file will override the default values listed above.
-
 CONFIG_FILE="$HOME/.mysqlbackup-plus.conf"
 if [ -r "$CONFIG_FILE" ]; then
-    . "$CONFIG_FILE"    # If exists, load user define settings
+    . "$CONFIG_FILE"    # If exists, load user defined settings
 fi
 
 # Ensure `.my.cnf` exists before continuing
@@ -103,56 +102,23 @@ fi
 
 # Determine compression level for mysqldump
 EXT=".sql"  # Default to plain SQL
-if [ -n "$COMPRESS_METHOD" ]; then
-    
-    if [ "$COMPRESS_METHOD" = "gzip" ]; then
-        GZIP=$(command -v gzip)
-	if [ -z "$GZIP" ]; then
-	    echo "Error: 'gzip' command not found! Please install gzip or check your PATH."
-            exit 1
-	fi
-    fi
 
-    if [ "$COMPRESS_METHOD" = "bzip2" ]; then
-	BZIP2=$(command -v bzip2)
-        if [ -z "$BZIP2" ]; then
-            echo "Error: 'bzip2' command not found! Please install bzip2 or check your PATH."
-            exit 1
-        fi
-    fi
-
-    if [ "$COMPRESS_METHOD" = "xz" ]; then
-        XZ=$(command -v xz)
-        if [ -z "$XZ" ]; then
-            echo "Error: 'xz' command not found! Please install xz or check your PATH."
-            exit 1
-        fi
-    fi
-
-    if [ "$COMPRESS_METHOD" = "zstd" ]; then
-	ZSTD=$(command -v zstd)
-        if [ -z "$ZSTD" ]; then
-            echo "Error: 'zstd' command not found! Please install zstd or check your PATH."
-            exit 1
-        fi
-    fi
-
-    if [ "$COMPRESS_METHOD" = "lz4" ]; then
-	LZ4=$(command -v lz4)
-        if [ -z "$LZ4" ]; then
-            echo "Error: 'lz4' command not found! Please install lz4 or check your PATH."
-            exit 1
-        fi
-    fi
-
+if [ -n "$COMPRESS_METHOD" ]; then    
     case "$COMPRESS_METHOD" in
-        "gzip") COMPRESS_CMD="$GZIP -c -${COMPRESS_LEVEL:-6}"; EXT=".sql.gz" ;;
-        "bzip2") COMPRESS_CMD="$BZIP2 -c -${COMPRESS_LEVEL:-9}"; EXT=".sql.bz2" ;;
-        "xz") COMPRESS_CMD="$XZ -c -${COMPRESS_LEVEL:-3}"; EXT=".sql.xz" ;;
-	"zstd") COMPRESS_CMD="$ZSTD -c -${COMPRESS_LEVEL:-3}"; EXT=".sql.zst" ;;
-	"lz4") COMPRESS_CMD="$LZ4 -c -${COMPRESS_LEVEL:-1}"; EXT=".sql.lz4" ;;
-	*) printf "Unknown compression method: %s\n" "$COMPRESS_METHOD"; exit 1 ;;
+        gzip) CMD=$(command -v gzip); EXT=".sql.gz"; LEVEL_OPT="-${COMPRESS_LEVEL:-6}" ;;
+        bzip2) CMD=$(command -v bzip2); EXT=".sql.bz2"; LEVEL_OPT="-${COMPRESS_LEVEL:-9}" ;;
+        xz) CMD=$(command -v xz); EXT=".sql.xz"; LEVEL_OPT="-${COMPRESS_LEVEL:-3}" ;;
+        zstd) CMD=$(command -v zstd); EXT=".sql.zst"; LEVEL_OPT="-${COMPRESS_LEVEL:-3}" ;;
+        lz4) CMD=$(command -v lz4); EXT=".sql.lz4"; LEVEL_OPT="-${COMPRESS_LEVEL:-1}" ;;
+        *) printf "Error: Unknown compression method '%s'\n" "$COMPRESS_METHOD"; exit 1 ;;
     esac
+
+    if [ -z "$CMD" ]; then
+        printf "Error: '%s' command not found! Please install %s or check your PATH.\n" "$COMPRESS_METHOD" "$COMPRESS_METHOD"
+        exit 1
+    fi
+
+    COMPRESS_CMD="$CMD -c $LEVEL_OPT"
 fi
 
 # Get the binary locations
