@@ -3,10 +3,10 @@
 ## MySQLBackupPlus - A powerful and flexible MySQL backup tool
 ## Copyright (C) 2025 Qcybb.com
 ## GitHub Repo: https://github.com/qcybb/mysqlbackup-plus
-## Version: 1.1.1
+## Version: 1.2
 ## Last Updated: 2025-05-21
 
-SCRIPT_VER="1.1.1"
+SCRIPT_VER="1.2"
 
 
 # START CONFIGURATION SETTINGS
@@ -59,6 +59,11 @@ ANALYZE_OPTIMIZE_DB="NO"
 
 # Analyze and optimize on which day (0 = Sunday, 7 = Saturday)
 ANALYZE_OPTIMIZE_DAY=0
+
+# If you want to save the output to a log file instead of being displayed, 
+# choose a filename where the output will be saved. If you don’t specify the
+# full file path, it will automatically be stored in your HOME directory.
+LOG_FILE=""
 
 # END CONFIGURATION SETTINGS
 
@@ -134,13 +139,49 @@ if [ -z "$MYSQLDUMP" ]; then
     exit 1
 fi
 
+# Log everything to a file (if enabled)
+if [ -n "$LOG_FILE" ]; then
+    # If LOG_FILE does not begin with a slash (absolute path), prepend $HOME/.
+    case "$LOG_FILE" in
+        /*) ;; # Already an absolute path; do nothing.
+        *) LOG_FILE="$HOME/$LOG_FILE" ;;
+    esac
+    exec > "$LOG_FILE" 2>&1
+fi
+
 # Get current weekday (0 = Sunday, 6 = Saturday)
 CURRENT_WEEKDAY=$(date +%w)
 
 # Get current month day (1-31)
 CURRENT_MONTHDAY=$(date +%d | sed 's/^0//')
 
-printf "\nMySQLBackupPlus v%s\n%s\n\n" "$SCRIPT_VER" "https://github.com/qcybb/mysqlbackup-plus"
+printf "\nMySQLBackupPlus v%s" "$SCRIPT_VER"
+printf "\nhttps://github.com/qcybb/mysqlbackup-plus\n"
+
+# Check for updates
+VERSION_URL="https://raw.githubusercontent.com/qcybb/mysqlbackup-plus/main/VERSION"
+
+if CURL_BIN=$(command -v curl 2>/dev/null); then
+    HTTP_CLIENT="$CURL_BIN"
+    CLIENT_TYPE="curl"
+elif WGET_BIN=$(command -v wget 2>/dev/null); then
+    HTTP_CLIENT="$WGET_BIN"
+    CLIENT_TYPE="wget"
+else
+    printf "\nPlease install curl or wget to check for updates.\n\n"
+fi
+
+if [ "$CLIENT_TYPE" = "curl" ]; then
+    LATEST_VERSION=$("$HTTP_CLIENT" -s --connect-timeout 5 --max-time 5 "$VERSION_URL")
+else
+    LATEST_VERSION=$("$HTTP_CLIENT" -q --connect-timeout=5 --timeout=5 -O - "$VERSION_URL")
+fi
+
+if [ "$SCRIPT_VER" != "$LATEST_VERSION" ]; then
+    printf "\nUpdate available! Latest version: %s\n\n" "$LATEST_VERSION"
+else
+    printf "\nYou are running the latest version.\n\n"
+fi
 
 # Analyze and Optimze tables
 if [ "$ANALYZE_OPTIMIZE_DB" = "YES" ] && [ "$CURRENT_WEEKDAY" -eq "$ANALYZE_OPTIMIZE_DAY" ]; then
@@ -323,4 +364,4 @@ fi
 END_DATE=$(date +"%Y-%m-%d %I:%M:%S %p")
 printf "\n%s\n" "=========================================="
 printf " Backup Completed: %s\n" "$END_DATE"
-printf "%s\n" "=========================================="
+printf "%s\n\n" "=========================================="
