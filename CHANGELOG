@@ -1,0 +1,12 @@
+v1.2
+- Added an option to save output messages to a log file.
+- The script now checks for updates automatically.
+
+v1.1.1
+- Consolidated compression method to reduce redundancy.
+- Improved error handling.
+
+v1.1
+- Added support for configuration file (.mysqlbackup-plus.conf)
+- Users can now define settings in an external file.
+  - Config settings override default values.
