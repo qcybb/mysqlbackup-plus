@@ -1,7 +1,7 @@
 # 💾 MySQLBackupPlus
 A powerful and flexible MySQL backup tool with built-in optimization features.
 
-## ⚙️ Features
+## 🚀 Features
 
 **Selective Backup Options**  
 Allows users to back up entire databases and/or specific tables, offering flexible backup configurations.
@@ -21,7 +21,7 @@ Supports MyISAM table optimization using `OPTIMIZE TABLE` for better performance
 **InnoDB Analysis** (Optional)  
 Performs `ANALYZE TABLE` on InnoDB tables to update index statistics, improving query optimization and execution efficiency.
 
-## 🛠️ Installation
+## 📥 Installation
 
 **Download the script**
 ```sh
@@ -42,7 +42,7 @@ If you prefer not to receive email notifications with the backup status informat
 0 3 * * * /path/to/mysqlbackup-plus.sh > /dev/null 2>&1
 ```
 
-## 🔧 Setup
+## ⚙️ Setup
 **Create a .my.cnf file**  
 This method enhances security by preventing your MySQL credentials from being exposed in command history.
 ```sh
