@@ -24,32 +24,32 @@ Performs `ANALYZE TABLE` on InnoDB tables to update index statistics, improving 
 ## 📥 Installation
 
 **Download the script**
-```sh
+```
 wget https://github.com/qcybb/mysqlbackup-plus/raw/main/mysqlbackup-plus.sh
 ```
 
 **Set Executable Permissions**
-```sh
+```
 chmod +x mysqlbackup-plus.sh
 ```
 
 **Add the script to Crontab** (run daily at 3AM)
-```sh
+```
 0 3 * * * /path/to/mysqlbackup-plus.sh
 ```
 If you prefer not to receive email notifications with the backup status information, you can suppress them by doing:
-```sh
+```
 0 3 * * * /path/to/mysqlbackup-plus.sh > /dev/null 2>&1
 ```
 
 ## ⚙️ Setup
 **Create a .my.cnf file**  
 This method enhances security by preventing your MySQL credentials from being exposed in command history.
-```sh
+```
 nano ~/.my.cnf
 ```
 **Add MySQL credentials to the file**
-```sh
+```
 [client]
 user=mysql_user_name
 password=mysql_password
@@ -60,7 +60,7 @@ If using nano, press CTRL + X, then Y, and Enter.
 ```
 
 **Set file permissions** (to prevent unauthorized access)
-```sh
+```
 chmod 600 ~/.my.cnf
 ```
 
@@ -74,7 +74,7 @@ default values set in the script.
 
 **Run Script Manually**  
 To manually execute the MySQL backup script, you can do one of the following:
-```sh
+```
 ./mysqlbackup-plus.sh
 sh /path/to/mysqlbackup-plus.sh
 ```
