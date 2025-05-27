@@ -22,7 +22,6 @@ Supports MyISAM table optimization using `OPTIMIZE TABLE` for better performance
 Performs `ANALYZE TABLE` on InnoDB tables to update index statistics, improving query optimization and execution efficiency.
 
 ## 📥 Installation
-
 **Download the script**
 ```
 wget https://github.com/qcybb/mysqlbackup-plus/raw/main/mysqlbackup-plus.sh
@@ -64,17 +63,20 @@ If using nano, press CTRL + X, then Y, and Enter.
 chmod 600 ~/.my.cnf
 ```
 
-**Customize Your Setup**  
-```
-To keep your settings intact across updates, store them in a configuration file instead
-of modifying this script with each new release. Create a file named .mysqlbackup-plus.conf
-in your HOME directory and define your options. Any settings in this file will override the
-default values set in the script.
-```
-
 **Run Script Manually**  
 To manually execute the MySQL backup script, you can do one of the following:
 ```
 ./mysqlbackup-plus.sh
+```
+```
 sh /path/to/mysqlbackup-plus.sh
 ```
+
+**Customize Your Setup**  
+
+To keep your settings intact across updates, store them in a configuration file instead of modifying this script with each new release.
+
+Create a file named `.mysqlbackup-plus.conf` in your HOME directory and define your options.
+
+Any settings in this file will override the default values set in the script.
+
