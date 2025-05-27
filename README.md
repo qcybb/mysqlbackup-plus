@@ -76,7 +76,7 @@ sh /path/to/mysqlbackup-plus.sh
 
 To keep your settings intact across updates, store them in a configuration file instead of modifying this script with each new release.
 
-Create a file named `.mysqlbackup-plus.conf` in your HOME directory and define your options.
+Create a file named `.mysqlbackup-plus.conf` in your HOME directory and only define the options you wish to modify.
 
-Any settings in this file will override the default values set in the script.
+Any settings in this file will override the default values set in the script, while unspecified options will retain their defaults.
 
