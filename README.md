@@ -72,11 +72,10 @@ To manually execute the MySQL backup script, you can do one of the following:
 sh /path/to/mysqlbackup-plus.sh
 ```
 
-**Customize Your Setup**  
+**Preserve Your Settings Across Updates**  
 
-To keep your settings intact across updates, store them in a configuration file instead of modifying this script with each new release.
+Instead of modifying the script with each new release, ensure your configuration settings remain intact by storing them in a dedicated configuration file.
 
-Create a file named `.mysqlbackup-plus.conf` in your HOME directory and only define the options you wish to modify.
+Create a file named `.mysqlbackup-plus.conf` in your HOME directory, defining only the options you wish to modify.
 
-Any settings in this file will override the default values set in the script, while unspecified options will retain their defaults.
-
+There is no need to include every setting, as any configurations you define in this file will override the default values in the script.
