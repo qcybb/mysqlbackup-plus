@@ -129,13 +129,13 @@ fi
 # Get the binary locations
 MYSQL=$(command -v mysql)
 if [ -z "$MYSQL" ]; then
-    echo "Error: 'mysql' command not found! Please install MySQL or check your PATH."
+    printf "Error: 'mysql' command not found! Please install MySQL or check your PATH.\n"
     exit 1
 fi
 
 MYSQLDUMP=$(command -v mysqldump)
 if [ -z "$MYSQLDUMP" ]; then
-    echo "Error: 'mysqldump' command not found! Please install MySQL or check your PATH."
+    printf "Error: 'mysqldump' command not found! Please install MySQL or check your PATH.\n"
     exit 1
 fi
 
@@ -171,16 +171,24 @@ else
     printf "\nPlease install curl or wget to check for updates.\n\n"
 fi
 
-if [ "$CLIENT_TYPE" = "curl" ]; then
-    LATEST_VERSION=$("$HTTP_CLIENT" -s --connect-timeout 5 --max-time 5 "$VERSION_URL")
-else
-    LATEST_VERSION=$("$HTTP_CLIENT" -q --connect-timeout=5 --timeout=5 -O - "$VERSION_URL")
-fi
+# client has curl or wget installed
+if [ -n "$CLIENT_TYPE" ]; then
+    if [ "$CLIENT_TYPE" = "curl" ]; then
+	LATEST_VERSION=$("$HTTP_CLIENT" -fs --connect-timeout 5 --max-time 5 "$VERSION_URL")
+    else
+        LATEST_VERSION=$("$HTTP_CLIENT" -q --connect-timeout=5 --timeout=5 -O - "$VERSION_URL")
+    fi
 
-if [ "$SCRIPT_VER" != "$LATEST_VERSION" ]; then
-    printf "\nUpdate available! Latest version: %s\n\n" "$LATEST_VERSION"
-else
-    printf "\nYou are running the latest version.\n\n"
+    # did we receive a response
+    if [ -n "$LATEST_VERSION" ]; then
+        if [ "$SCRIPT_VER" != "$LATEST_VERSION" ]; then
+            printf "\nUpdate available! Latest version: %s\n\n" "$LATEST_VERSION"
+        else
+            printf "\nYou are running the latest version.\n\n"
+        fi
+    else
+	printf "\nCould not retrieve the latest version information from the server.\n\n"
+    fi
 fi
 
 # Analyze and Optimze tables
