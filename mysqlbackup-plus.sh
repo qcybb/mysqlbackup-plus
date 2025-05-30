@@ -188,7 +188,14 @@ if [ "$ANALYZE_OPTIMIZE_DB" = "YES" ] && [ "$CURRENT_WEEKDAY" -eq "$ANALYZE_OPTI
     MYSQL_CMD="$MYSQL --defaults-file=$HOME/.my.cnf -Bs"
 
     # Get list of databases, excluding system databases
-    CHECK_DATABASES=$($MYSQL_CMD -e "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN ('mysql', 'information_schema', 'performance_schema', 'sys');")
+    CHECK_DATABASES=$($MYSQL_CMD -e "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN ('mysql', 'information_schema', 'performance_schema', 'sys');" | LC_ALL=C sort)
+
+    # Exclude any databases
+    if [ -n "$EXCLUDE_DATABASES" ]; then
+        for EXCLUDED_DB in $EXCLUDE_DATABASES; do
+            CHECK_DATABASES=$(echo "$CHECK_DATABASES" | grep -v -E "(^| )$EXCLUDED_DB( |$)")
+        done
+    fi
 
     printf "Start analyzing or optimizing databases\n\n"
 
@@ -236,7 +243,7 @@ printf "%s\n" "========================================"
 
 # If ALL is set, fetch all databases
 if [ "$DATABASES" = "ALL" ]; then
-    DATABASES=$($MYSQL --defaults-file="$HOME/.my.cnf" -e "SHOW DATABASES;" | sed '1d' | grep -v -E "information_schema|performance_schema|mysql|sys")
+    DATABASES=$($MYSQL --defaults-file="$HOME/.my.cnf" -e "SHOW DATABASES;" | sed '1d' | grep -v -E "information_schema|performance_schema|mysql|sys" | LC_ALL=C sort)
 
     # Exclude any databases
     if [ -n "$EXCLUDE_DATABASES" ]; then
@@ -244,6 +251,8 @@ if [ "$DATABASES" = "ALL" ]; then
 	    DATABASES=$(echo "$DATABASES" | grep -v -E "(^| )$EXCLUDED_DB( |$)")
         done
     fi
+else
+    DATABASES=$(echo "$DATABASES" | tr ' ' '\n' | LC_ALL=C sort | tr '\n' ' ')
 fi
 
 # Loop through the databases
