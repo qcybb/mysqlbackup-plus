@@ -3,10 +3,10 @@
 ## MySQLBackupPlus - A powerful and flexible MySQL backup tool
 ## Copyright (C) 2025 Qcybb.com
 ## GitHub Repo: https://github.com/qcybb/mysqlbackup-plus
-## Version: 1.2
+## Version: 1.2.1
 ## Last Updated: 2025-05-25
 
-SCRIPT_VER="1.2"
+SCRIPT_VER="1.2.1"
 
 
 # START CONFIGURATION SETTINGS
@@ -268,27 +268,51 @@ for DB_ENTRY in $DATABASES; do
     DB_NAME=$(echo "$DB_ENTRY" | cut -d':' -f1)
     TABLES=$(echo "$DB_ENTRY" | cut -d':' -f2)
 
+    DAILY_PATH="$BACKUP_DIR/daily/$DB_NAME"
+    WEEKLY_PATH="$BACKUP_DIR/weekly/$DB_NAME"
+    MONTHLY_PATH="$BACKUP_DIR/monthly/$DB_NAME"
+
     printf "\n----------------------------------------\n"
     printf "[$(date +"%I:%M:%S %p")] Processing %s...\n" "$DB_NAME"
 
     if [ "$TABLES" != "$DB_NAME" ]; then
         # Table-level backups
         for TABLE in $(echo "$TABLES" | tr ',' ' '); do
-            DAILY_PATH="$BACKUP_DIR/daily/$DB_NAME"
-            WEEKLY_PATH="$BACKUP_DIR/weekly/$DB_NAME"
-            MONTHLY_PATH="$BACKUP_DIR/monthly/$DB_NAME"
-
-            [ ! -d "$DAILY_PATH" ] && mkdir -p "$DAILY_PATH"
-
-            OUTPUT_FILE="$DAILY_PATH/${TABLE}_$BACKUP_DATE$EXT"
-
 	    if mysql --defaults-file="$HOME/.my.cnf" -e "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA='$DB_NAME' AND TABLE_NAME='$TABLE'" | grep -q "$TABLE"; then
+		[ ! -d "$DAILY_PATH" ] && mkdir -p "$DAILY_PATH"
+
+		OUTPUT_FILE="$DAILY_PATH/${TABLE}_$BACKUP_DATE$EXT"
             	$MYSQLDUMP --defaults-file="$HOME/.my.cnf" "$DB_NAME" "$TABLE" | $COMPRESS_CMD > "$OUTPUT_FILE"
+
 		printf "\n    - Table: $TABLE\n"
 		printf "        -> Saved to:  ${BACKUP_DIR}/daily/${DB_NAME}/${TABLE}_${BACKUP_DATE}${EXT}\n"
+
+            	if [ "$BACKUP_WEEKLY" = "YES" ] && [ "$CURRENT_WEEKDAY" -eq "$WEEKLY_BACKUP_DAY" ]; then
+                    [ ! -d "$WEEKLY_PATH" ] && mkdir -p "$WEEKLY_PATH"
+                    cp "$OUTPUT_FILE" "$WEEKLY_PATH/"
+                    printf "        -> Copied to: $WEEKLY_PATH/\n"
+            	fi
+
+            	if [ "$BACKUP_MONTHLY" = "YES" ] && [ "$CURRENT_MONTHDAY" -eq "$MONTHLY_BACKUP_DAY" ]; then
+                    [ ! -d "$MONTHLY_PATH" ] && mkdir -p "$MONTHLY_PATH"
+                    cp "$OUTPUT_FILE" "$MONTHLY_PATH/"
+                    printf "        -> Copied to: $MONTHLY_PATH/\n"
+            	fi
 	    else
 		printf "\nError: Table '$TABLE' in database '$DB_NAME' does not exist.\n"
 	    fi
+        done
+    else
+        # Full DB backup
+	if mysql --defaults-file="$HOME/.my.cnf" -e "SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='$DB_NAME'" | grep -q "$DB_NAME"; then
+	    [ ! -d "$DAILY_PATH" ] && mkdir -p "$DAILY_PATH"
+
+	    OUTPUT_FILE="$DAILY_PATH/${DB_NAME}_$BACKUP_DATE$EXT"
+	    $MYSQLDUMP --defaults-file="$HOME/.my.cnf" "$DB_NAME" | $COMPRESS_CMD > "$OUTPUT_FILE"
+
+	    printf "\n    - Full Database\n"
+	    printf "        -> Saved to:  ${BACKUP_DIR}/daily/${DB_NAME}/${DB_NAME}_${BACKUP_DATE}${EXT}\n"
+
 
             if [ "$BACKUP_WEEKLY" = "YES" ] && [ "$CURRENT_WEEKDAY" -eq "$WEEKLY_BACKUP_DAY" ]; then
                 [ ! -d "$WEEKLY_PATH" ] && mkdir -p "$WEEKLY_PATH"
@@ -301,36 +325,9 @@ for DB_ENTRY in $DATABASES; do
                 cp "$OUTPUT_FILE" "$MONTHLY_PATH/"
                 printf "        -> Copied to: $MONTHLY_PATH/\n"
             fi
-        done
-    else
-        # Full DB backup
-        DAILY_PATH="$BACKUP_DIR/daily/$DB_NAME"
-        WEEKLY_PATH="$BACKUP_DIR/weekly/$DB_NAME"
-        MONTHLY_PATH="$BACKUP_DIR/monthly/$DB_NAME"
-
-        [ ! -d "$DAILY_PATH" ] && mkdir -p "$DAILY_PATH"
-
-        OUTPUT_FILE="$DAILY_PATH/${DB_NAME}_$BACKUP_DATE$EXT"
-
-	if mysql --defaults-file="$HOME/.my.cnf" -e "SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='$DB_NAME'" | grep -q "$DB_NAME"; then
-            $MYSQLDUMP --defaults-file="$HOME/.my.cnf" "$DB_NAME" | $COMPRESS_CMD > "$OUTPUT_FILE"
-		printf "\n    - Full Database\n"
-		printf "        -> Saved to:  ${BACKUP_DIR}/daily/${DB_NAME}/${DB_NAME}_${BACKUP_DATE}${EXT}\n"
 	else
 	    printf "\nError: Database '$DB_NAME' does not exist.\n"
 	fi
-
-        if [ "$BACKUP_WEEKLY" = "YES" ] && [ "$CURRENT_WEEKDAY" -eq "$WEEKLY_BACKUP_DAY" ]; then
-            [ ! -d "$WEEKLY_PATH" ] && mkdir -p "$WEEKLY_PATH"
-            cp "$OUTPUT_FILE" "$WEEKLY_PATH/"
-            printf "        -> Copied to: $WEEKLY_PATH/\n"
-        fi
-
-        if [ "$BACKUP_MONTHLY" = "YES" ] && [ "$CURRENT_MONTHDAY" -eq "$MONTHLY_BACKUP_DAY" ]; then
-            [ ! -d "$MONTHLY_PATH" ] && mkdir -p "$MONTHLY_PATH"
-            cp "$OUTPUT_FILE" "$MONTHLY_PATH/"
-            printf "        -> Copied to: $MONTHLY_PATH/\n"
-        fi
     fi
     printf "%s\n" "----------------------------------------"
 done
@@ -340,7 +337,7 @@ if [ "$ROTATE_DAYS" -gt 0 ]; then
     DELETED_FILES=$(find "$BACKUP_DIR/daily" -type f -mtime +"$ROTATE_DAYS" -print)
 
     if [ -n "$DELETED_FILES" ]; then
-        find "$BACKUP_DIR" -type f -mtime +"$ROTATE_DAYS" -exec rm "{}" \;
+        find "$BACKUP_DIR/daily" -type f -mtime +"$ROTATE_DAYS" -exec rm "{}" \;
         
         UNIT="day"
         [ "$ROTATE_DAYS" -gt 1 ] && UNIT="days"
