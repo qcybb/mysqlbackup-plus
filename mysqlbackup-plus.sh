@@ -3,10 +3,10 @@
 ## MySQLBackupPlus - A powerful and flexible MySQL backup tool
 ## Copyright (C) 2025 Qcybb.com
 ## GitHub Repo: https://github.com/qcybb/mysqlbackup-plus
-## Version: 1.2.1
+## Version: 1.2.2
 ## Last Updated: 2025-05-25
 
-SCRIPT_VER="1.2.1"
+SCRIPT_VER="1.2.2"
 
 
 # START CONFIGURATION SETTINGS
@@ -155,7 +155,7 @@ CURRENT_WEEKDAY=$(date +%w)
 # Get current month day (1-31)
 CURRENT_MONTHDAY=$(date +%d | sed 's/^0//')
 
-printf "\nMySQLBackupPlus v%s" "$SCRIPT_VER"
+printf "\n\nMySQLBackupPlus v%s" "$SCRIPT_VER"
 printf "\nhttps://github.com/qcybb/mysqlbackup-plus\n"
 
 # Check for updates
@@ -168,7 +168,7 @@ elif WGET_BIN=$(command -v wget 2>/dev/null); then
     HTTP_CLIENT="$WGET_BIN"
     CLIENT_TYPE="wget"
 else
-    printf "\nPlease install curl or wget to check for updates.\n\n"
+    printf "\nPlease install curl or wget to check for updates.\n\n\n"
 fi
 
 # client has curl or wget installed
@@ -182,12 +182,12 @@ if [ -n "$CLIENT_TYPE" ]; then
     # did we receive a response
     if [ -n "$LATEST_VERSION" ]; then
         if [ "$SCRIPT_VER" != "$LATEST_VERSION" ]; then
-            printf "\nUpdate available! Latest version: %s\n\n" "$LATEST_VERSION"
+            printf "\nUpdate available! Latest version: %s\n\n\n" "$LATEST_VERSION"
         else
-            printf "\nYou are running the latest version.\n\n"
+            printf "\nYou are running the latest version.\n\n\n"
         fi
     else
-	printf "\nCould not retrieve the latest version information from the server.\n\n"
+	printf "\nCould not retrieve the latest version information from the server.\n\n\n"
     fi
 fi
 
@@ -205,11 +205,11 @@ if [ "$ANALYZE_OPTIMIZE_DB" = "YES" ] && [ "$CURRENT_WEEKDAY" -eq "$ANALYZE_OPTI
         done
     fi
 
-    printf "Start analyzing or optimizing databases\n\n"
+    printf "%s\n\n" "Start analyzing or optimizing databases"
 
     # Loop through the databases
     for DB in $CHECK_DATABASES; do
-        printf "%s\n" "----------------------------------------"
+        printf "%s\n\n" "----------------------------------------"
         printf "Processing database: %s\n" "$DB"
 
         # Get all MyISAM tables
@@ -237,10 +237,11 @@ if [ "$ANALYZE_OPTIMIZE_DB" = "YES" ] && [ "$CURRENT_WEEKDAY" -eq "$ANALYZE_OPTI
         else
             printf "No InnoDB tables found in %s.\n" "$DB"
         fi
+	printf "\n"
     done
 
-    printf "%s\n" "----------------------------------------"
-    printf "\nFinished analyzing or optimizing databases\n\n"
+    printf "%s\n\n" "----------------------------------------"
+    printf "%s\n\n\n" "Finished analyzing or optimizing databases"
 fi
 
 # Start log entry
@@ -272,7 +273,7 @@ for DB_ENTRY in $DATABASES; do
     WEEKLY_PATH="$BACKUP_DIR/weekly/$DB_NAME"
     MONTHLY_PATH="$BACKUP_DIR/monthly/$DB_NAME"
 
-    printf "\n----------------------------------------\n"
+    printf "\n%s\n\n" "----------------------------------------"
     printf "[$(date +"%I:%M:%S %p")] Processing %s...\n" "$DB_NAME"
 
     if [ "$TABLES" != "$DB_NAME" ]; then
@@ -329,8 +330,9 @@ for DB_ENTRY in $DATABASES; do
 	    printf "\nError: Database '$DB_NAME' does not exist.\n"
 	fi
     fi
-    printf "%s\n" "----------------------------------------"
 done
+
+printf "\n%s\n" "----------------------------------------"
 
 # Rotate daily backups
 if [ "$ROTATE_DAYS" -gt 0 ]; then
