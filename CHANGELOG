@@ -1,3 +1,8 @@
+v1.3
+- Corrected Weekly/Monthly backup day logic
+- Refined MySQL Table/Schema validation
+- Backup rotation now displays deleted file(s)
+
 v1.2
 - Added an option to save output messages to a log file.
 - The script now checks for updates automatically.
