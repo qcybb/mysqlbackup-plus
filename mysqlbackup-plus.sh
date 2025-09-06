@@ -3,10 +3,10 @@
 ## MySQLBackupPlus - A powerful and flexible MySQL backup tool
 ## Copyright (C) 2025 Qcybb.com
 ## GitHub Repo: https://github.com/qcybb/mysqlbackup-plus
-## Version: 1.2.2
+## Version: 1.3
 ## Last Updated: 2025-05-25
 
-SCRIPT_VER="1.2.2"
+SCRIPT_VER="1.3"
 
 
 # START CONFIGURATION SETTINGS
@@ -20,7 +20,7 @@ BACKUP_DATE=$(date +"%Y-%m-%d")
 # Create weekly backups
 BACKUP_WEEKLY="YES"
 
-# Which day to do the weekly backup (0 = Sunday, 7 = Saturday)
+# Which day to do the weekly backup (0 = Sunday, 6 = Saturday)
 WEEKLY_BACKUP_DAY=0
 
 # Create monthly backups
@@ -57,7 +57,7 @@ EXCLUDE_DATABASES=""
 # Analyze InnoDB tables and optimize MyISAM tables every week
 ANALYZE_OPTIMIZE_DB="NO"
 
-# Analyze and optimize on which day (0 = Sunday, 7 = Saturday)
+# Analyze and optimize on which day (0 = Sunday, 6 = Saturday)
 ANALYZE_OPTIMIZE_DAY=0
 
 # If you want to save the output to a log file instead of being displayed, 
@@ -279,7 +279,7 @@ for DB_ENTRY in $DATABASES; do
     if [ "$TABLES" != "$DB_NAME" ]; then
         # Table-level backups
         for TABLE in $(echo "$TABLES" | tr ',' ' '); do
-	    if mysql --defaults-file="$HOME/.my.cnf" -e "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA='$DB_NAME' AND TABLE_NAME='$TABLE'" | grep -q "$TABLE"; then
+	    if mysql --defaults-file="$HOME/.my.cnf" --batch --skip-column-names -e "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA='$DB_NAME' AND TABLE_NAME='$TABLE'" | grep -Fxq "$TABLE"; then
 		[ ! -d "$DAILY_PATH" ] && mkdir -p "$DAILY_PATH"
 
 		OUTPUT_FILE="$DAILY_PATH/${TABLE}_$BACKUP_DATE$EXT"
@@ -305,7 +305,7 @@ for DB_ENTRY in $DATABASES; do
         done
     else
         # Full DB backup
-	if mysql --defaults-file="$HOME/.my.cnf" -e "SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='$DB_NAME'" | grep -q "$DB_NAME"; then
+	if mysql --defaults-file="$HOME/.my.cnf" --batch --skip-column-names -e "SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='$DB_NAME'" | grep -Fxq "$DB_NAME"; then
 	    [ ! -d "$DAILY_PATH" ] && mkdir -p "$DAILY_PATH"
 
 	    OUTPUT_FILE="$DAILY_PATH/${DB_NAME}_$BACKUP_DATE$EXT"
@@ -345,6 +345,12 @@ if [ "$ROTATE_DAYS" -gt 0 ]; then
         [ "$ROTATE_DAYS" -gt 1 ] && UNIT="days"
 
         printf "\n[$(date +"%I:%M:%S %p")] Rotating daily backups... (Keeping last $ROTATE_DAYS $UNIT)\n"
+
+	COUNT=$(echo "$DELETED_FILES" | wc -l)
+	LABEL="Deleted file"
+	[ "$COUNT" -gt 1 ] && LABEL="Deleted files"
+
+	printf "\n$LABEL:\n$DELETED_FILES\n"
     fi
 fi
 
@@ -359,6 +365,12 @@ if [ "$BACKUP_WEEKLY" = "YES" ] && [ "$ROTATE_WEEKS" -gt 0 ]; then
         [ "$ROTATE_WEEKS" -gt 1 ] && UNIT="weeks"
 
         printf "\n[$(date +"%I:%M:%S %p")] Rotating weekly backups... (Keeping last $ROTATE_WEEKS $UNIT)\n"
+
+        COUNT=$(echo "$DELETED_FILES" | wc -l)
+        LABEL="Deleted file"
+        [ "$COUNT" -gt 1 ] && LABEL="Deleted files"
+
+        printf "\n$LABEL:\n$DELETED_FILES\n"
     fi
 fi
 
@@ -373,6 +385,12 @@ if [ "$BACKUP_MONTHLY" = "YES" ] && [ "$ROTATE_MONTHS" -gt 0 ]; then
         [ "$ROTATE_MONTHS" -gt 1 ] && UNIT="months"
 
         printf "\n[$(date +"%I:%M:%S %p")] Rotating monthly backups... (Keeping last $ROTATE_MONTHS $UNIT)\n"
+
+        COUNT=$(echo "$DELETED_FILES" | wc -l)
+        LABEL="Deleted file"
+        [ "$COUNT" -gt 1 ] && LABEL="Deleted files"
+
+        printf "\n$LABEL:\n$DELETED_FILES\n"
     fi
 fi
 
